@@ -75,7 +75,7 @@ int main(int argc, char** argv) {
         return 1;
     }
     auto [child_stdin, child_stdout, child_stderr] =
-        expat::run_process(argv[1], std::array {0_input, 1_output, 2_output});
+        expat::run_process(std::array {0_input, 1_output, 2_output}, argv[1]);
 
     asio::io_context context;
     posix_stream stdin = posix_stream(context, ::dup(STDIN_FILENO));
