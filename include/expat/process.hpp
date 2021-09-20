@@ -11,49 +11,6 @@
 
 namespace expat {
 
-struct file_descriptor {
-    int fd = 0;
-    std::string_view read(std::span<char> buffer) {
-        ssize_t bytes_read = ::read(fd, buffer.data(), buffer.size());
-        if (bytes_read == -1) {
-            throw std::system_error(
-                errno,
-                std::system_category(),
-                "Error when reading from fd");
-        }
-        return std::string_view(buffer.data(), bytes_read);
-    }
-    std::string_view write(std::string_view data) {
-        ssize_t result = ::write(fd, data.data(), data.size());
-
-        if (result == -1) {
-            throw std::system_error(
-                errno,
-                std::system_category(),
-                "Error when writing to fd");
-        }
-
-        data.remove_prefix(result);
-        return data;
-    }
-    void write_all(std::string_view data) {
-        while (data.size() > 0) {
-            data = write(data);
-        }
-    }
-    std::string read_all() {
-        std::array<char, 4096> buffer;
-        std::string result;
-        while (true) {
-            auto sv = read(buffer);
-            if (sv.size() == 0)
-                break;
-            result += sv;
-        }
-        return result;
-    }
-};
-
 process_fd run_process(std::string_view pathname) {
     process_fd proc;
 
@@ -153,16 +110,5 @@ std::array<fd_desc, N> run_process(
             std::system_category(),
             "Unable to run execv");
     }
-}
-
-std::string_view read_or_throw(int fd, std::span<char> buffer) {
-    ssize_t bytes_read = read(fd, buffer.data(), buffer.size());
-    if (bytes_read == -1) {
-        throw std::system_error(
-            errno,
-            std::system_category(),
-            "Error when reading from fd");
-    }
-    return std::string_view(buffer.data(), bytes_read);
 }
 } // namespace expat
