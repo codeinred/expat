@@ -42,4 +42,39 @@ struct process_fd {
     int stdout = 0;
     int stderr = 0;
 };
+
+process_fd run_process(std::string_view pathname) {
+    process_fd proc;
+
+    pipe_fd stdin = open_pipe();
+    pipe_fd stdout = open_pipe();
+    pipe_fd stderr = open_pipe();
+
+    if (fork_or_throw()) {
+        // We know we're the parent because pid != 0
+
+        // the parent gets the write end and the read ends
+        return process_fd {
+            stdin.write_end, // <br>
+            stdout.read_end, // <br>
+            stderr.read_end  // <br>
+        };
+    } else {
+        // The pid returned from fork_or_throw() was 0, so we know we're the
+        // child
+
+        dup2_or_throw(stdin.read_end, 0);
+        dup2_or_throw(stdout.write_end, 1);
+        dup2_or_throw(stderr.write_end, 2);
+
+        std::string pathname_arg = std::string(pathname);
+        std::array<char*, 2> args = {pathname_arg.data(), nullptr};
+
+        execv(pathname_arg.data(), args.data());
+
+        // This only occurs when execv fails
+        throw std::system_error(
+            errno, std::system_category(), "Unable to run execv");
+    }
+}
 } // namespace expat
