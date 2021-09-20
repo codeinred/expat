@@ -82,11 +82,6 @@ int dup2_or_throw(int oldfd, int newfd) {
     }
     return result;
 }
-struct process_fd {
-    int stdin = 0;
-    int stdout = 0;
-    int stderr = 0;
-};
 
 process_fd run_process(std::string_view pathname) {
     process_fd proc;
