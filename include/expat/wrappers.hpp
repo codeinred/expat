@@ -17,4 +17,15 @@ pipe_fd open_pipe() {
             "Unable to open pipe");
     }
 }
+
+pid_t fork_or_throw() {
+    pid_t pid = fork();
+    if (pid == -1) {
+        throw std::system_error(
+            errno,
+            std::system_category(),
+            "Unable to fork process");
+    }
+    return pid;
+}
 }
