@@ -30,8 +30,9 @@ stop_on_destruction(Context&) -> stop_on_destruction<Context>;
 auto make_reader(
     asio::io_context& context,
     posix_stream& stream,
-    std::string prefix) {
-    return [&context, &stream, prefix]() -> asio::awaitable<void> {
+    std::string prefix,
+    FILE* dest) {
+    return [&context, &stream, prefix, dest]() -> asio::awaitable<void> {
         stop_on_destruction stop_token {context};
         std::array<char, 1024> buffer;
         bool line_complete = true;
@@ -45,26 +46,27 @@ auto make_reader(
 
 
             if (line_complete)
-                fmt::print("{}", prefix);
+                fmt::print(dest, "{}", prefix);
             line_complete = result.ends_with('\n');
             size_t pos = 0;
             for (;;) {
                 size_t new_pos = result.find('\n', pos);
                 if (new_pos == result.npos) {
                     result.remove_prefix(pos);
-                    fmt::print("{}", result);
+                    fmt::print(dest, "{}", result);
                     fflush(::stdout);
                     break;
                 }
                 auto line = result.substr(pos, new_pos - pos);
                 pos = new_pos + 1;
                 if (pos >= result.size()) {
-                    fmt::print("{}\n", line);
+                    fmt::print(dest, "{}\n", line);
                     break;
                 } else {
-                    fmt::print("{}\n{}", line, prefix);
+                    fmt::print(dest, "{}\n{}", line, prefix);
                 }
             }
+            fflush(dest);
         }
     };
 }
@@ -115,13 +117,14 @@ int main(int argc, char** argv) {
                 auto bytes_written = co_await child_in.async_write_some(
                     asio::buffer(message),
                     asio::use_awaitable);
+                fsync(child_in.native_handle());
                 message.remove_prefix(bytes_written);
             }
         }
     };
 
-    auto read_output = make_reader(context, child_out, stdout_prefix);
-    auto read_err = make_reader(context, child_err, stderr_prefix);
+    auto read_output = make_reader(context, child_out, stdout_prefix, stdout);
+    auto read_err = make_reader(context, child_err, stderr_prefix, stderr);
     asio::co_spawn(context, read_output, asio::detached);
     asio::co_spawn(context, read_err, asio::detached);
     asio::co_spawn(context, write_message, asio::detached);
