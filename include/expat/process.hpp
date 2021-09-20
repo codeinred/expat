@@ -14,7 +14,7 @@
 
 namespace expat {
 namespace fs = std::filesystem;
-fs::path get_pathname(fs::path name) {
+fs::path search_path(fs::path name) {
     if (name.is_absolute() || fs::exists(name)) {
         return name;
     }
@@ -52,7 +52,7 @@ std::array<fd_desc, N> run_process(
     char** argv) {
     standard_process_fds proc;
 
-    auto program = get_pathname(argv[0]);
+    auto program = search_path(argv[0]);
 
     std::array<pipe_fd, N> pipes;
     for (auto& pipe : pipes) {
