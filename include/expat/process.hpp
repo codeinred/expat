@@ -1,6 +1,9 @@
 #pragma once
+#include <fmt/core.h>
+
 #include <array>
 #include <cstdio>
+#include <filesystem>
 #include <span>
 #include <string>
 #include <system_error>
@@ -10,12 +13,46 @@
 #include <expat/wrappers.hpp>
 
 namespace expat {
+namespace fs = std::filesystem;
+fs::path get_pathname(fs::path name) {
+    if (name.is_absolute() || fs::exists(name)) {
+        return name;
+    }
+    std::string_view path = getenv("PATH");
+    if (path.data() == nullptr) {
+        throw std::runtime_error("PATH environment variable not defined");
+    }
+
+    size_t p0 = 0;
+    while (p0 < path.size()) {
+        // Get the next entry
+        size_t p1 = path.find(':', p0);
+        // Skip empty entries
+        if (p1 == p0)
+            continue;
+        if (p1 == path.npos)
+            p1 = path.size();
+        fs::path entry = path.substr(p0, p1 - p0) / name;
+        p0 = p1 + 1;
+
+        if (fs::exists(entry)) {
+            return entry;
+        }
+    }
+
+    throw std::runtime_error(fmt::format(
+        "Unable to find '{}' in $PATH with PATH='{}'",
+        name.c_str(),
+        path));
+}
 
 template <size_t N>
 std::array<fd_desc, N> run_process(
     std::array<fd_desc, N> const& fds,
-    std::string_view pathname) {
+    char** argv) {
     standard_process_fds proc;
+
+    auto program = get_pathname(argv[0]);
 
     std::array<pipe_fd, N> pipes;
     for (auto& pipe : pipes) {
@@ -53,10 +90,7 @@ std::array<fd_desc, N> run_process(
             }
         }
 
-        std::string pathname_arg = std::string(pathname);
-        std::array<char*, 2> args = {pathname_arg.data(), nullptr};
-
-        execv(pathname_arg.data(), args.data());
+        execv(program.c_str(), argv);
 
         // This only occurs when execv fails
         throw std::system_error(
@@ -66,9 +100,9 @@ std::array<fd_desc, N> run_process(
     }
 }
 
-standard_process_fds run_process(std::string_view pathname) {
+standard_process_fds run_process(char** argv) {
     auto [stdin, stdout, stderr] =
-        run_process(std::array {0_input, 1_output, 2_output}, pathname);
+        run_process(std::array {0_input, 1_output, 2_output}, argv);
     return standard_process_fds {stdin, stdout, stderr};
 }
 } // namespace expat

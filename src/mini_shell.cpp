@@ -1,8 +1,9 @@
-#include <conduit/util/stdlib_coroutine.hpp>
-#include <cstdlib>
-#include <expat/process.hpp>
 #include <fmt/color.h>
 #include <fmt/core.h>
+#include <cstdlib>
+#include <expat/process.hpp>
+
+#include <conduit/util/stdlib_coroutine.hpp>
 
 #define BOOST_ASIO_HAS_CO_AWAIT
 #include <boost/asio/io_context.hpp>
@@ -75,7 +76,7 @@ int main(int argc, char** argv) {
         return 1;
     }
     auto [child_stdin, child_stdout, child_stderr] =
-        expat::run_process(std::array {0_input, 1_output, 2_output}, argv[1]);
+        expat::run_process(std::array {0_input, 1_output, 2_output}, argv + 1);
 
     asio::io_context context;
     posix_stream stdin = posix_stream(context, ::dup(STDIN_FILENO));
