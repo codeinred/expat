@@ -1,5 +1,7 @@
 #include <conduit/util/stdlib_coroutine.hpp>
+#include <cstdlib>
 #include <expat/process.hpp>
+#include <fmt/color.h>
 #include <fmt/core.h>
 
 #define BOOST_ASIO_HAS_CO_AWAIT
@@ -30,7 +32,8 @@ auto make_reader(
     std::string prefix) {
     return [&context, &stream, prefix]() -> asio::awaitable<void> {
         stop_on_destruction stop_token {context};
-        std::string buffer(1024, '\0');
+        std::array<char, 1024> buffer;
+        bool line_complete = true;
 
         while (stream.is_open()) {
             std::string_view result = std::string_view(
@@ -38,16 +41,32 @@ auto make_reader(
                 co_await stream.async_read_some(
                     asio::buffer(buffer), asio::use_awaitable));
 
+
+            if (line_complete)
+                fmt::print("{}", prefix);
+            line_complete = result.ends_with('\n');
             size_t pos = 0;
-            do {
+            for (;;) {
                 size_t new_pos = result.find('\n', pos);
+                if (new_pos == result.npos) {
+                    result.remove_prefix(pos);
+                    fmt::print("{}", result);
+                    fflush(::stdout);
+                    break;
+                }
                 auto line = result.substr(pos, new_pos - pos);
-                fmt::print("{}{}\n", prefix, line);
                 pos = new_pos + 1;
-            } while (pos < result.size());
+                if (pos >= result.size()) {
+                    fmt::print("{}\n", line);
+                    break;
+                } else {
+                    fmt::print("{}\n{}", line, prefix);
+                }
+            }
         }
     };
 }
+
 int main(int argc, char** argv) {
     using namespace expat;
     auto fds = expat::run_process(argv[1]);
@@ -58,10 +77,21 @@ int main(int argc, char** argv) {
     posix_stream child_out = posix_stream(context, fds.stdout);
     posix_stream child_err = posix_stream(context, fds.stderr);
 
+
+    auto stdin_prefix = fmt::format(
+        fmt::emphasis::bold | fg(fmt::color::gold), "{} $ ", getenv("USER"));
+
+    auto stdout_prefix =
+        fmt::format(fmt::emphasis::bold | fg(fmt::color::green), "[stdout] ");
+
+    auto stderr_prefix =
+        fmt::format(fmt::emphasis::bold | fg(fmt::color::red), "[stderr] ");
+
     auto write_message = [&]() -> asio::awaitable<void> {
         stop_on_destruction stop_token {context};
         std::string buffer(1024, '\0');
         while (stdin.is_open()) {
+            fflush(stdout);
             size_t count = co_await stdin.async_read_some(
                 asio::buffer(buffer), asio::use_awaitable);
             if (count == 0) {
@@ -79,8 +109,8 @@ int main(int argc, char** argv) {
         }
     };
 
-    auto read_output = make_reader(context, child_out, "[stdout] ");
-    auto read_err = make_reader(context, child_err, "[stderr] ");
+    auto read_output = make_reader(context, child_out, stdout_prefix);
+    auto read_err = make_reader(context, child_err, stderr_prefix);
     asio::co_spawn(context, read_output, asio::detached);
     asio::co_spawn(context, read_err, asio::detached);
     asio::co_spawn(context, write_message, asio::detached);
