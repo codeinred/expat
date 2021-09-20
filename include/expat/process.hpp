@@ -1,6 +1,7 @@
 #pragma once
 #include <array>
 #include <cstdio>
+#include <span>
 #include <string>
 #include <system_error>
 #include <unistd.h>
@@ -76,5 +77,14 @@ process_fd run_process(std::string_view pathname) {
         throw std::system_error(
             errno, std::system_category(), "Unable to run execv");
     }
+}
+
+std::string_view read_or_throw(int fd, std::span<char> buffer) {
+    ssize_t bytes_read = read(fd, buffer.data(), buffer.size());
+    if (bytes_read == -1) {
+        throw std::system_error(
+            errno, std::system_category(), "Error when reading from fd");
+    }
+    return std::string_view(buffer.data(), bytes_read);
 }
 } // namespace expat
