@@ -12,8 +12,7 @@ int main() {
         // We have to close the end we're not using before reading
         close(pipe.write_end);
 
-        file_descriptor read {pipe.read_end};
-        auto result = read.read_all();
+        auto result = read_all(pipe.read_end);
         fmt::print("[Parent] Result: {}\n", result);
         if (result == message) {
             fmt::print("[Parent] Everything good!\n");
@@ -25,8 +24,7 @@ int main() {
     } else {
         fmt::print("[Child] writing...\n");
         close(pipe.read_end);
-        file_descriptor write {pipe.write_end};
-        write.write_all(message);
+        write_all(pipe.write_end, message);
         fmt::print("[Child] finished\n");
         return 0;
     }
