@@ -1,0 +1,20 @@
+#pragma once
+
+#include <unistd.h>
+#include <system_error>
+
+#include <expat/wrapper_types.hpp>
+
+namespace expat {
+pipe_fd open_pipe() {
+    int arr[2];
+    if (pipe(arr) != -1) {
+        return pipe_fd {arr[0], arr[1]};
+    } else {
+        throw std::system_error(
+            errno,
+            std::system_category(),
+            "Unable to open pipe");
+    }
+}
+}

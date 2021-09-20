@@ -7,6 +7,8 @@
 #include <unistd.h>
 
 #include <expat/wrapper_types.hpp>
+#include <expat/wrappers.hpp>
+
 namespace expat {
 
 struct file_descriptor {
@@ -51,18 +53,6 @@ struct file_descriptor {
         return result;
     }
 };
-
-pipe_fd open_pipe() {
-    int arr[2];
-    if (pipe(arr) != -1) {
-        return pipe_fd {arr[0], arr[1]};
-    } else {
-        throw std::system_error(
-            errno,
-            std::system_category(),
-            "Unable to open pipe");
-    }
-}
 
 pid_t fork_or_throw() {
     pid_t pid = fork();
