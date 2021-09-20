@@ -141,6 +141,12 @@ enum class fd_category : bool { fd_input, fd_output };
 constexpr auto fd_input = fd_category::fd_input;
 constexpr auto fd_output = fd_category::fd_output;
 
+struct fd_desc {
+    int fd {-1};
+    fd_category category;
+    constexpr operator int() const noexcept { return fd; }
+};
+
 
 std::string_view read_or_throw(int fd, std::span<char> buffer) {
     ssize_t bytes_read = read(fd, buffer.data(), buffer.size());
