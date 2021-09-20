@@ -39,7 +39,7 @@ int dup2_or_throw(int oldfd, int newfd) {
     return result;
 }
 
-std::string_view read(int fd, std::span<char> buffer) {
+std::string_view read_or_throw(int fd, std::span<char> buffer) {
     ssize_t bytes_read = ::read(fd, buffer.data(), buffer.size());
     if (bytes_read == -1) {
         throw std::system_error(
@@ -49,7 +49,7 @@ std::string_view read(int fd, std::span<char> buffer) {
     }
     return std::string_view(buffer.data(), bytes_read);
 }
-std::string_view write(int fd, std::string_view data) {
+std::string_view write_or_throw(int fd, std::string_view data) {
     ssize_t result = ::write(fd, data.data(), data.size());
 
     if (result == -1) {
@@ -64,14 +64,14 @@ std::string_view write(int fd, std::string_view data) {
 }
 void write_all(int fd, std::string_view data) {
     while (data.size() > 0) {
-        data = write(fd, data);
+        data = write_or_throw(fd, data);
     }
 }
 std::string read_all(int fd) {
     std::array<char, 4096> buffer;
     std::string result;
     while (true) {
-        auto sv = read(fd, buffer);
+        auto sv = read_or_throw(fd, buffer);
         if (sv.size() == 0)
             break;
         result += sv;
