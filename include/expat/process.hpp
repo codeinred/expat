@@ -26,5 +26,10 @@ pid_t fork_or_throw() {
     }
     return pid;
 }
+struct process_fd {
+    int stdin = 0;
+    int stdout = 0;
+    int stderr = 0;
+};
 
 } // namespace expat
