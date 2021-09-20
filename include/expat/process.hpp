@@ -6,6 +6,7 @@
 #include <system_error>
 #include <unistd.h>
 
+#include <expat/wrapper_types.hpp>
 namespace expat {
 
 struct file_descriptor {
@@ -50,10 +51,7 @@ struct file_descriptor {
         return result;
     }
 };
-struct pipe_fd {
-    int read_end = 0;
-    int write_end = 0;
-};
+
 pipe_fd open_pipe() {
     int arr[2];
     if (pipe(arr) != -1) {
@@ -158,8 +156,8 @@ constexpr fd_desc operator"" _output(unsigned long long fd) {
 }
 template <size_t N>
 std::array<fd_desc, N> run_process(
-    std::string_view pathname,
-    std::array<fd_desc, N> const& fds) {
+    std::array<fd_desc, N> const& fds,
+    std::string_view pathname) {
     process_fd proc;
 
     std::array<pipe_fd, N> pipes;
