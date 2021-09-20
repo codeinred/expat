@@ -41,7 +41,6 @@ find_or_fetch(fmt "https://github.com/fmtlib/fmt.git" master)
 
 list(APPEND CMAKE_PREFIX_PATH "$ENV{HOME}/.local")
 
-set(CMAKE_CXX_FLAGS "-fcoroutines")
 find_package(Boost 1.77.0 REQUIRED COMPONENTS system regex)
 
 target_include_directories(${libname} INTERFACE ${Boost_INCLUDE_DIRS})
