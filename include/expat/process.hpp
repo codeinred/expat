@@ -8,13 +8,40 @@
 
 namespace expat {
 
+struct file_descriptor {
+    int fd = 0;
+    std::string_view read(std::span<char> buffer) {
+        ssize_t bytes_read = ::read(fd, buffer.data(), buffer.size());
+        if (bytes_read == -1) {
+            throw std::system_error(
+                errno, std::system_category(), "Error when reading from fd");
+        }
+        return std::string_view(buffer.data(), bytes_read);
+    }
+    std::string_view write(std::string_view data) {
+        ssize_t result = ::write(fd, data.data(), data.size());
+
+        if (result == -1) {
+            throw std::system_error(
+                errno, std::system_category(), "Error when writing to fd");
+        }
+
+        data.remove_prefix(result);
+        return data;
+    }
+    void write_all(std::string_view data) {
+        while(data.size() > 0) {
+            data = write(data);
+        }
+    }
+};
 struct pipe_fd {
     int read_end = 0;
     int write_end = 0;
 };
 pipe_fd open_pipe() {
     int arr[2];
-    if (!pipe(arr)) {
+    if (pipe(arr) != -1) {
         return pipe_fd {arr[0], arr[1]};
     } else {
         throw std::system_error(
