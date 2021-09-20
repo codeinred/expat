@@ -14,7 +14,9 @@ struct file_descriptor {
         ssize_t bytes_read = ::read(fd, buffer.data(), buffer.size());
         if (bytes_read == -1) {
             throw std::system_error(
-                errno, std::system_category(), "Error when reading from fd");
+                errno,
+                std::system_category(),
+                "Error when reading from fd");
         }
         return std::string_view(buffer.data(), bytes_read);
     }
@@ -23,7 +25,9 @@ struct file_descriptor {
 
         if (result == -1) {
             throw std::system_error(
-                errno, std::system_category(), "Error when writing to fd");
+                errno,
+                std::system_category(),
+                "Error when writing to fd");
         }
 
         data.remove_prefix(result);
@@ -56,7 +60,9 @@ pipe_fd open_pipe() {
         return pipe_fd {arr[0], arr[1]};
     } else {
         throw std::system_error(
-            errno, std::system_category(), "Unable to open pipe");
+            errno,
+            std::system_category(),
+            "Unable to open pipe");
     }
 }
 
@@ -64,7 +70,9 @@ pid_t fork_or_throw() {
     pid_t pid = fork();
     if (pid == -1) {
         throw std::system_error(
-            errno, std::system_category(), "Unable to fork process");
+            errno,
+            std::system_category(),
+            "Unable to fork process");
     }
     return pid;
 }
@@ -122,7 +130,9 @@ process_fd run_process(std::string_view pathname) {
 
         // This only occurs when execv fails
         throw std::system_error(
-            errno, std::system_category(), "Unable to run execv");
+            errno,
+            std::system_category(),
+            "Unable to run execv");
     }
 }
 
@@ -130,7 +140,9 @@ std::string_view read_or_throw(int fd, std::span<char> buffer) {
     ssize_t bytes_read = read(fd, buffer.data(), buffer.size());
     if (bytes_read == -1) {
         throw std::system_error(
-            errno, std::system_category(), "Error when reading from fd");
+            errno,
+            std::system_category(),
+            "Error when reading from fd");
     }
     return std::string_view(buffer.data(), bytes_read);
 }

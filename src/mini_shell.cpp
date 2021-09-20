@@ -39,7 +39,8 @@ auto make_reader(
             std::string_view result = std::string_view(
                 buffer.data(),
                 co_await stream.async_read_some(
-                    asio::buffer(buffer), asio::use_awaitable));
+                    asio::buffer(buffer),
+                    asio::use_awaitable));
 
 
             if (line_complete)
@@ -79,7 +80,9 @@ int main(int argc, char** argv) {
 
 
     auto stdin_prefix = fmt::format(
-        fmt::emphasis::bold | fg(fmt::color::gold), "{} $ ", getenv("USER"));
+        fmt::emphasis::bold | fg(fmt::color::gold),
+        "{} $ ",
+        getenv("USER"));
 
     auto stdout_prefix =
         fmt::format(fmt::emphasis::bold | fg(fmt::color::green), "[stdout] ");
@@ -93,7 +96,8 @@ int main(int argc, char** argv) {
         while (stdin.is_open()) {
             fflush(stdout);
             size_t count = co_await stdin.async_read_some(
-                asio::buffer(buffer), asio::use_awaitable);
+                asio::buffer(buffer),
+                asio::use_awaitable);
             if (count == 0) {
                 fmt::print("reached EOF\n");
                 child_in.close();
@@ -103,7 +107,8 @@ int main(int argc, char** argv) {
             std::string_view message = std::string_view(buffer.data(), count);
             while (child_in.is_open() && message.size() > 0) {
                 auto bytes_written = co_await child_in.async_write_some(
-                    asio::buffer(message), asio::use_awaitable);
+                    asio::buffer(message),
+                    asio::use_awaitable);
                 message.remove_prefix(bytes_written);
             }
         }
