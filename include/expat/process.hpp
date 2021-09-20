@@ -129,11 +129,6 @@ process_fd run_process(std::string_view pathname) {
     }
 }
 
-enum class fd_category : bool { fd_input, fd_output };
-
-constexpr auto fd_input = fd_category::fd_input;
-constexpr auto fd_output = fd_category::fd_output;
-
 struct fd_desc {
     int fd {-1};
     fd_category category;

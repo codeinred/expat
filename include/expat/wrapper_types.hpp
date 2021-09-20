@@ -12,4 +12,9 @@ struct process_fd {
     int stdout = 0;
     int stderr = 0;
 };
+
+enum class fd_category : bool { fd_input, fd_output };
+
+constexpr auto fd_input = fd_category::fd_input;
+constexpr auto fd_output = fd_category::fd_output;
 } // namespace expat
