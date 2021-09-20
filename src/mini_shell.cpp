@@ -70,13 +70,18 @@ auto make_reader(
 
 int main(int argc, char** argv) {
     using namespace expat;
-    auto fds = expat::run_process(argv[1]);
+    if (argc == 1) {
+        fmt::print("Error: missing argument.\n");
+        return 1;
+    }
+    auto [child_stdin, child_stdout, child_stderr] =
+        expat::run_process(argv[1], std::array {0_input, 1_output, 2_output});
 
     asio::io_context context;
     posix_stream stdin = posix_stream(context, ::dup(STDIN_FILENO));
-    posix_stream child_in = posix_stream(context, fds.stdin);
-    posix_stream child_out = posix_stream(context, fds.stdout);
-    posix_stream child_err = posix_stream(context, fds.stderr);
+    posix_stream child_in = posix_stream(context, child_stdin.fd);
+    posix_stream child_out = posix_stream(context, child_stdout.fd);
+    posix_stream child_err = posix_stream(context, child_stderr.fd);
 
 
     auto stdin_prefix = fmt::format(
