@@ -92,6 +92,10 @@ process_fd run_process(std::string_view pathname) {
     if (fork_or_throw()) {
         // We know we're the parent because pid != 0
 
+        // We need to close the end we're not using
+        close(stdin.read_end);
+        close(stdout.write_end);
+        close(stderr.write_end);
         // the parent gets the write end and the read ends
         return process_fd {
             stdin.write_end, // <br>
@@ -101,6 +105,11 @@ process_fd run_process(std::string_view pathname) {
     } else {
         // The pid returned from fork_or_throw() was 0, so we know we're the
         // child
+
+        // We need to close the end we're not using
+        close(stdin.write_end);
+        close(stdout.read_end);
+        close(stderr.read_end);
 
         dup2_or_throw(stdin.read_end, 0);
         dup2_or_throw(stdout.write_end, 1);
