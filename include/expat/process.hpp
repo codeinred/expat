@@ -30,9 +30,20 @@ struct file_descriptor {
         return data;
     }
     void write_all(std::string_view data) {
-        while(data.size() > 0) {
+        while (data.size() > 0) {
             data = write(data);
         }
+    }
+    std::string read_all() {
+        std::array<char, 4096> buffer;
+        std::string result;
+        while (true) {
+            auto sv = read(buffer);
+            if (sv.size() == 0)
+                break;
+            result += sv;
+        }
+        return result;
     }
 };
 struct pipe_fd {
