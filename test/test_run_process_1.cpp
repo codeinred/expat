@@ -29,22 +29,20 @@ auto make_reader(
     return [&context, &stream, prefix]() -> asio::awaitable<void> {
         stop_on_destruction stop_token {context};
         std::string buffer(1024, '\0');
-        std::string print_buffer = prefix;
 
         while (stream.is_open()) {
             std::string_view result = std::string_view(
                 buffer.data(),
                 co_await stream.async_read_some(
                     asio::buffer(buffer), asio::use_awaitable));
-            for (char c : result) {
-                print_buffer += c;
-                if (c == '\n') {
-                    print_buffer += prefix;
-                }
-            }
 
-            fmt::print("{}\n", print_buffer);
-            print_buffer.clear();
+            size_t pos = 0;
+            do {
+                size_t new_pos = result.find('\n', pos);
+                auto line = result.substr(pos, new_pos - pos);
+                fmt::print("{}{}\n", prefix, line);
+                pos = new_pos + 1;
+            } while (pos < result.size());
         }
     };
 }
