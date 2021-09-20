@@ -1,4 +1,3 @@
-#include <conduit/coroutine.hpp>
 #include <conduit/util/stdlib_coroutine.hpp>
 #include <expat/process.hpp>
 #include <fmt/core.h>
@@ -13,7 +12,6 @@
 
 namespace asio = boost::asio;
 namespace posix = boost::asio::posix;
-namespace co = conduit;
 
 using posix_stream = posix::stream_descriptor;
 
