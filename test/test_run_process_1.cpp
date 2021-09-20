@@ -25,7 +25,9 @@ template <class Context>
 stop_on_destruction(Context&) -> stop_on_destruction<Context>;
 
 auto make_reader(
-    asio::io_context& context, posix_stream& stream, std::string prefix) {
+    asio::io_context& context,
+    posix_stream& stream,
+    std::string prefix) {
     return [&context, &stream, prefix]() -> asio::awaitable<void> {
         stop_on_destruction stop_token {context};
         std::string buffer(1024, '\0');
