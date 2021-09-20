@@ -1,6 +1,6 @@
 #include <fmt/color.h>
 #include <fmt/core.h>
-#include <cstdlib>
+
 #include <expat/process.hpp>
 
 #include <conduit/util/stdlib_coroutine.hpp>
@@ -77,8 +77,9 @@ int main(int argc, char** argv) {
         fmt::print("Error: missing argument.\n");
         return 1;
     }
-    auto [child_stdin, child_stdout, child_stderr] =
-        expat::run_process(std::array {0_input, 1_output, 2_output}, argv + 1);
+    auto [child_stdin, child_stdout, child_stderr] = expat::run_process(
+        std::array {0_input, 1_output, 2_output},
+        argv + 1);
 
     asio::io_context context;
     posix_stream stdin = posix_stream(context, ::dup(STDIN_FILENO));
@@ -92,11 +93,13 @@ int main(int argc, char** argv) {
         "{} $ ",
         getenv("USER"));
 
-    auto stdout_prefix =
-        fmt::format(fmt::emphasis::bold | fg(fmt::color::green), "[stdout] ");
+    auto stdout_prefix = fmt::format(
+        fmt::emphasis::bold | fg(fmt::color::green),
+        "[stdout] ");
 
-    auto stderr_prefix =
-        fmt::format(fmt::emphasis::bold | fg(fmt::color::red), "[stderr] ");
+    auto stderr_prefix = fmt::format(
+        fmt::emphasis::bold | fg(fmt::color::red),
+        "[stderr] ");
 
     auto write_message = [&]() -> asio::awaitable<void> {
         stop_on_destruction stop_token {context};
