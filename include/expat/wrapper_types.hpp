@@ -6,7 +6,7 @@ struct pipe_fd {
     int write_end = 0;
 };
 
-struct process_fd {
+struct standard_process_fds {
     int stdin = 0;
     int stdout = 0;
     int stderr = 0;
