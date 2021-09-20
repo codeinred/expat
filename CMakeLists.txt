@@ -40,4 +40,5 @@ if(PROJECT_IS_TOP_LEVEL)
     # find_or_fetch(benchmark "https://github.com/google/benchmark.git" main)
 
     add_source_dir(src ${libname} fmt noam)
+    add_test_dir(test ${libname} fmt)
 endif()
