@@ -28,4 +28,12 @@ pid_t fork_or_throw() {
     }
     return pid;
 }
+
+int dup2_or_throw(int oldfd, int newfd) {
+    int result = dup2(oldfd, newfd);
+    if (result == -1) {
+        throw std::system_error(errno, std::system_category(), "dup2 failed");
+    }
+    return result;
+}
 }

@@ -54,14 +54,6 @@ struct file_descriptor {
     }
 };
 
-int dup2_or_throw(int oldfd, int newfd) {
-    int result = dup2(oldfd, newfd);
-    if (result == -1) {
-        throw std::system_error(errno, std::system_category(), "dup2 failed");
-    }
-    return result;
-}
-
 process_fd run_process(std::string_view pathname) {
     process_fd proc;
 
