@@ -147,6 +147,15 @@ struct fd_desc {
     constexpr operator int() const noexcept { return fd; }
 };
 
+constexpr fd_desc input_fd(int fd) { return fd_desc {fd, fd_input}; }
+constexpr fd_desc output_fd(int fd) { return fd_desc {fd, fd_output}; }
+
+constexpr fd_desc operator"" _input(unsigned long long fd) {
+    return fd_desc {(int)fd, fd_input};
+}
+constexpr fd_desc operator"" _output(unsigned long long fd) {
+    return fd_desc {(int)fd, fd_output};
+}
 
 std::string_view read_or_throw(int fd, std::span<char> buffer) {
     ssize_t bytes_read = read(fd, buffer.data(), buffer.size());
