@@ -1,6 +1,8 @@
 #pragma once
 #include <conduit/util/stdlib_coroutine.hpp>
 
+#include <conduit/coroutine.hpp>
+
 #include <expat/process.hpp>
 
 #include <string>
@@ -32,11 +34,15 @@ auto read_all_output(asio::io_context& context, char** argv)
             asio::buffer(buffer),
             asio::use_awaitable);
 
+
         // If No bytes are read, we break so we can return the result
         if (num_bytes == 0)
             break;
 
-        result += std::string_view(buffer.data(), num_bytes);
+        auto section_read = std::string_view(buffer.data(), num_bytes);
+        fmt::print("Read {}\n", section_read);
+        fmt::print("Output open? {}\n", output.is_open());
+        result += section_read;
     }
 
     co_return result;
