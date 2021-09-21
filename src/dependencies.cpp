@@ -1,24 +1,26 @@
+#include <fmt/color.h>
+#include <fmt/core.h>
+
 #include <expat/needs.hpp>
 
-auto read_and_print_output(boost::asio::io_context& context, char** argv) {
-    return [&context, argv]() -> boost::asio::awaitable<void> {
-        fmt::print("[Reading output for {}]\n", argv[0]);
-        std::string output = co_await expat::read_all_output(context, argv);
+auto co_main(boost::asio::io_context& context, int argc, char** argv)
+    -> conduit::coroutine {
 
-        fmt::print("Output:\n\n{}", output);
+    // The program name is stored in argv[1], and the arguments are stored in
+    // argv[2] ..., so we pass argv + 1
+    auto future = expat::read_all_output(context, argv + 1);
+    std::string output = co_await future;
 
-        context.stop();
-    };
+    fmt::print("Output:\n\n{}", output);
+
+    context.stop();
 }
 int main(int argc, char** argv) {
     using namespace expat;
 
     asio::io_context context;
 
-    asio::co_spawn(
-        context,
-        read_and_print_output(context, argv + 1),
-        asio::detached);
+    co_main(context, argc, argv);
 
     context.run();
 }
