@@ -3,24 +3,10 @@
 
 #include <expat/needs.hpp>
 
-auto co_main(boost::asio::io_context& context, int argc, char** argv)
-    -> conduit::coroutine {
+int main(int argc, char** argv) {
 
-    // The program name is stored in argv[1], and the arguments are stored in
-    // argv[2] ..., so we pass argv + 1
-    auto future = expat::read_all_output(context, argv + 1);
-    std::string output = co_await future;
+    std::string output = expat::read_all_output(argv + 1);
 
     fmt::print("Output:\n\n{}", output);
 
-    context.stop();
-}
-int main(int argc, char** argv) {
-    using namespace expat;
-
-    asio::io_context context;
-
-    co_main(context, argc, argv);
-
-    context.run();
 }
