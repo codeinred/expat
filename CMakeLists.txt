@@ -35,9 +35,11 @@ install(
     DESTINATION include
 )
 
-find_or_fetch(conduit "https://github.com/codeinred/conduit.git" main)
 find_or_fetch(noam "https://github.com/codeinred/noam.git" main)
 find_or_fetch(fmt "https://github.com/fmtlib/fmt.git" master)
+
+note("Remote dependencies: ${remote_dependencies}")
+FetchContent_MakeAvailable(${remote_dependencies})
 
 list(APPEND CMAKE_PREFIX_PATH "$ENV{HOME}/.local")
 
@@ -47,11 +49,8 @@ target_include_directories(${libname} INTERFACE ${Boost_INCLUDE_DIRS})
 target_link_libraries(
     ${libname}
     INTERFACE
-    conduit
     noam
     fmt
-    Boost::system
-    Boost::regex
     Threads::Threads)
 
 if(PROJECT_IS_TOP_LEVEL)
