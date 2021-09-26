@@ -68,11 +68,12 @@ function(find_or_fetch package repo tag)
         note("Fetching dependency '${package}' from ${repo}")
         include(FetchContent)
         FetchContent_Declare(
-            ${package}
+            "${package}"
             GIT_REPOSITORY "${repo}"
             GIT_TAG "${tag}"
         )
-        set (remote_dependencies ${remote_dependencies} ${package} PARENT_SCOPE)
+        list(APPEND remote_dependencies "${package}")
+        set (remote_dependencies  ${remote_dependencies} PARENT_SCOPE)
     else()
         note("Using system cmake package for dependency '${package}'")
     endif()
@@ -107,11 +108,12 @@ endfunction()
 # registered as a test via CTest
 function(add_test_dir dir)
     if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${dir}")
-        include(CTest)
         file(GLOB all_targets "${dir}/*.cpp")
         string(REPLACE ";" ", " library_list "${ARGN}")
         foreach(filename ${all_targets})
             get_filename_component(target ${filename} NAME_WLE)
+            # Tests are named test_{name of test}
+            set(target test_${target})
             note("Adding test '${target}' from ${dir}/${target}.cpp with libraries ${library_list}")
             add_executable("${target}" "${filename}")
             target_link_libraries("${target}" PRIVATE ${ARGN})
