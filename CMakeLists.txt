@@ -10,9 +10,8 @@ project(${project_name} CXX)
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/helper.cmake")
 
-
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
-find_package(Threads REQUIRED)
 
 ###################################
 ## Section 3: Project CMake code ##
@@ -26,26 +25,15 @@ target_cpp_20(${libname})
 target_include_directories(
     ${libname}
     INTERFACE
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/>
-    $<INSTALL_INTERFACE:include>
-)
+    include/)
 
-install(
-    DIRECTORY ${PROJECT_SOURCE_DIR}/include/
-    DESTINATION include
-)
-
+find_package(Threads REQUIRED)
 find_or_fetch(noam "https://github.com/codeinred/noam.git" main)
 find_or_fetch(fmt "https://github.com/fmtlib/fmt.git" master)
 
 note("Remote dependencies: ${remote_dependencies}")
 FetchContent_MakeAvailable(${remote_dependencies})
 
-list(APPEND CMAKE_PREFIX_PATH "$ENV{HOME}/.local")
-
-find_package(Boost 1.77.0 REQUIRED COMPONENTS system regex)
-
-target_include_directories(${libname} INTERFACE ${Boost_INCLUDE_DIRS})
 target_link_libraries(
     ${libname}
     INTERFACE
@@ -58,5 +46,6 @@ if(PROJECT_IS_TOP_LEVEL)
     # find_or_fetch(benchmark "https://github.com/google/benchmark.git" main)
 
     add_source_dir(src ${libname})
+    include(CTest)
     add_test_dir(test ${libname})
 endif()
